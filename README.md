@@ -143,27 +143,45 @@ curl "localhost:8001/fhir/Procedure?patient=pt-001"
 ```
 
 ## Run it
-Two terminals (the ePCR calls the hospital):
 
+### Docker (recommended)
 ```bash
-# terminal 1 — the hospital FHIR API
-python hospital/app.py          # http://localhost:8001
+docker compose up --build
+```
+- hospital → <http://localhost:8001>  (EHR chart view at `/chart/pt-001`)
+- EMS side → <http://localhost:8002>  ← **start here**
 
-# terminal 2 — the crew ePCR view
-python epcr/app.py              # http://localhost:8002
+Two services off one image. The ePCR reaches the hospital by **service name**
+(`FHIR_BASE=http://hospital:8001/fhir`), which is the same single knob you'd turn to
+point the bridge at a real FHIR server. Runs as a non-root user; the hospital gets the
+data volume read-write (it receives crew submissions), the crew side gets it read-only.
+
+### Without Docker
+```bash
+python -m venv .venv && ./.venv/bin/pip install -r requirements.txt
+./run.sh                      # starts both, Ctrl-C stops both
 ```
 
-Then open **http://localhost:8002** and dispatch to a patient.
-`pt-001` (Dwyer) shows the severe allergy, the safety flag, *and* a possible
-duplicate chart. From the card, **+ FILE PATIENT REPORT** exercises the return path.
+Then open **<http://localhost:8002>** and pick a call. `pt-001` (Dwyer) is the one that
+shows the severe allergy, the safety flag, *and* a possible duplicate chart. From the
+pre-arrival card, **FILE PATIENT REPORT** exercises the return path.
 
-The hospital also renders an EHR-style chart at **http://localhost:8001/chart/pt-001**
-— useful side by side with the crew view: the same safety flag is a small chip
-behind a tab there, and the first thing on the screen in the truck.
+Worth viewing side by side: the hospital's own chart at
+**<http://localhost:8001/chart/pt-001>** carries the same safety flag as a small chip
+behind a tab — it's the first thing on the screen in the truck.
 
-Test the transform alone, no browser:
+Environment:
+
+| var | default | notes |
+|---|---|---|
+| `FHIR_BASE` | `http://localhost:8001/fhir` | point the bridge anywhere R4 |
+| `HOST` | `127.0.0.1` | `0.0.0.0` to expose on a LAN |
+| `DEBUG` | off | `1` enables the Flask debugger — never in a deployment |
+
+Test the transform alone, no services, no browser:
 ```bash
 python bridge/bridge.py pt-001
+FHIR_BASE=https://hapi.fhir.org/baseR4 python bridge/bridge.py 137206160
 ```
 
 ## FHIR resources used

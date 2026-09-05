@@ -1,0 +1,39 @@
+# Two services, one image. The ePCR reaches the hospital by service name, so the
+# bridge's FHIR_BASE is the only thing that changes between local and container
+# runs -- which is the same knob you'd turn to point it at a real FHIR server.
+services:
+  hospital:
+    build: .
+    image: epic-done-right:latest
+    container_name: edr-hospital
+    command: python hospital/app.py
+    environment:
+      HOST: 0.0.0.0
+    volumes:
+      - ./data:/app/data          # writable: receives the crew's submissions
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request;urllib.request.urlopen('http://localhost:8001/',timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  epcr:
+    # no build: reuses the image hospital builds (same code, different entrypoint)
+    image: epic-done-right:latest
+    container_name: edr-epcr
+    command: python epcr/app.py
+    environment:
+      HOST: 0.0.0.0
+      FHIR_BASE: http://hospital:8001/fhir
+    volumes:
+      - ./data:/app/data:ro       # read-only: the crew side never writes to disk
+    ports:
+      - "8002:8002"
+    depends_on:
+      hospital:
+        condition: service_healthy
+    restart: unless-stopped
