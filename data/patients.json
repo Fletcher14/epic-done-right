@@ -5,19 +5,46 @@
       "Patient": {
         "resourceType": "Patient",
         "id": "pt-001",
-        "name": [{"use": "official", "family": "Dwyer", "given": ["Margaret", "Anne"]}],
+        "name": [
+          {
+            "use": "official",
+            "family": "Dwyer",
+            "given": [
+              "Margaret",
+              "Anne"
+            ]
+          }
+        ],
         "gender": "female",
         "birthDate": "1938-11-02",
-        "identifier": [{"system": "urn:mrn", "value": "MRN-448201"}]
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-448201"
+          }
+        ]
       },
       "AllergyIntolerance": [
         {
           "resourceType": "AllergyIntolerance",
           "id": "al-001",
-          "patient": {"reference": "Patient/pt-001"},
-          "code": {"text": "Penicillin"},
+          "patient": {
+            "reference": "Patient/pt-001"
+          },
+          "code": {
+            "text": "Penicillin"
+          },
           "criticality": "high",
-          "reaction": [{"manifestation": [{"text": "Anaphylaxis"}], "severity": "severe"}]
+          "reaction": [
+            {
+              "manifestation": [
+                {
+                  "text": "Anaphylaxis"
+                }
+              ],
+              "severity": "severe"
+            }
+          ]
         }
       ],
       "Flag": [
@@ -25,16 +52,42 @@
           "resourceType": "Flag",
           "id": "fl-001",
           "status": "active",
-          "category": [{"text": "Safety"}],
-          "code": {"text": "History of violence toward staff"},
-          "subject": {"reference": "Patient/pt-001"}
+          "category": [
+            {
+              "text": "Safety"
+            }
+          ],
+          "code": {
+            "text": "History of violence toward staff"
+          },
+          "subject": {
+            "reference": "Patient/pt-001"
+          }
         }
       ],
       "MedicationRequest": [
-        {"resourceType": "MedicationRequest", "id": "med-001", "status": "active",
-         "medicationCodeableConcept": {"text": "Warfarin 5mg PO daily"}, "subject": {"reference": "Patient/pt-001"}},
-        {"resourceType": "MedicationRequest", "id": "med-002", "status": "active",
-         "medicationCodeableConcept": {"text": "Metoprolol 25mg PO BID"}, "subject": {"reference": "Patient/pt-001"}}
+        {
+          "resourceType": "MedicationRequest",
+          "id": "med-001",
+          "status": "active",
+          "medicationCodeableConcept": {
+            "text": "Warfarin 5mg PO daily"
+          },
+          "subject": {
+            "reference": "Patient/pt-001"
+          }
+        },
+        {
+          "resourceType": "MedicationRequest",
+          "id": "med-002",
+          "status": "active",
+          "medicationCodeableConcept": {
+            "text": "Metoprolol 25mg PO BID"
+          },
+          "subject": {
+            "reference": "Patient/pt-001"
+          }
+        }
       ]
     },
     {
@@ -42,16 +95,38 @@
       "Patient": {
         "resourceType": "Patient",
         "id": "pt-002",
-        "name": [{"use": "official", "family": "Osei", "given": ["Daniel"]}],
+        "name": [
+          {
+            "use": "official",
+            "family": "Osei",
+            "given": [
+              "Daniel"
+            ]
+          }
+        ],
         "gender": "male",
         "birthDate": "1991-06-15",
-        "identifier": [{"system": "urn:mrn", "value": "MRN-771903"}]
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-771903"
+          }
+        ]
       },
       "AllergyIntolerance": [],
       "Flag": [],
       "MedicationRequest": [
-        {"resourceType": "MedicationRequest", "id": "med-010", "status": "active",
-         "medicationCodeableConcept": {"text": "Salbutamol inhaler PRN"}, "subject": {"reference": "Patient/pt-002"}}
+        {
+          "resourceType": "MedicationRequest",
+          "id": "med-010",
+          "status": "active",
+          "medicationCodeableConcept": {
+            "text": "Salbutamol inhaler PRN"
+          },
+          "subject": {
+            "reference": "Patient/pt-002"
+          }
+        }
       ]
     },
     {
@@ -59,23 +134,110 @@
       "Patient": {
         "resourceType": "Patient",
         "id": "pt-003",
-        "name": [{"use": "official", "family": "Reilly", "given": ["Sean"]}],
+        "name": [
+          {
+            "use": "official",
+            "family": "Reilly",
+            "given": [
+              "Sean"
+            ]
+          }
+        ],
         "gender": "male",
         "birthDate": "1975-03-22",
-        "identifier": [{"system": "urn:mrn", "value": "MRN-559140"}]
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-559140"
+          }
+        ]
       },
       "AllergyIntolerance": [
         {
           "resourceType": "AllergyIntolerance",
           "id": "al-003",
-          "patient": {"reference": "Patient/pt-003"},
-          "code": {"text": "Sulfa drugs"},
+          "patient": {
+            "reference": "Patient/pt-003"
+          },
+          "code": {
+            "text": "Sulfa drugs"
+          },
           "criticality": "low",
-          "reaction": [{"manifestation": [{"text": "Rash"}], "severity": "mild"}]
+          "reaction": [
+            {
+              "manifestation": [
+                {
+                  "text": "Rash"
+                }
+              ],
+              "severity": "mild"
+            }
+          ]
         }
       ],
       "Flag": [],
       "MedicationRequest": []
+    },
+    {
+      "id": "pt-004",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-004",
+        "name": [
+          {
+            "use": "official",
+            "family": "Dwyer",
+            "given": [
+              "Margaret"
+            ]
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1938-11-02",
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-902715"
+          }
+        ]
+      },
+      "AllergyIntolerance": [
+        {
+          "resourceType": "AllergyIntolerance",
+          "id": "al-004",
+          "patient": {
+            "reference": "Patient/pt-004"
+          },
+          "code": {
+            "text": "Sulfa drugs"
+          },
+          "criticality": "high",
+          "reaction": [
+            {
+              "manifestation": [
+                {
+                  "text": "Stevens-Johnson syndrome"
+                }
+              ],
+              "severity": "severe"
+            }
+          ]
+        }
+      ],
+      "Flag": [],
+      "MedicationRequest": [
+        {
+          "resourceType": "MedicationRequest",
+          "id": "mr-004",
+          "patient": {
+            "reference": "Patient/pt-004"
+          },
+          "status": "active",
+          "medicationCodeableConcept": {
+            "text": "Furosemide 40mg PO daily"
+          }
+        }
+      ]
     }
   ]
 }

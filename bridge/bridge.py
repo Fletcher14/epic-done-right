@@ -25,7 +25,9 @@ HARDENING NOTES (found by actually running this against hapi.fhir.org, not guess
     that fails should say "not found", and one failing search (e.g. Flag)
     must not take the whole card down with it.
 """
+import datetime as dt
 import os
+
 import requests
 
 HOSPITAL_BASE = os.environ.get("FHIR_BASE", "http://localhost:8001/fhir")
@@ -110,6 +112,43 @@ def _mrn(p):
     return ""
 
 
+def _family(p):
+    return ((p.get("name") or [{}])[0].get("family") or "").strip()
+
+
+def find_possible_duplicates(patient, pid, max_candidates=3):
+    """Surface other charts that MAY be the same human. We never merge or score.
+
+    Deliberately conservative: exact family name + exact birthDate. Identity
+    resolution is a human decision made with context the bridge does not have,
+    and a wrong merge is unrecoverable -- so we only report that another chart
+    exists and what safety-relevant data is sitting on it. Split charts are a
+    common way allergies go missing between systems.
+    """
+    fam, dob = _family(patient), patient.get("birthDate")
+    if not fam or not dob:
+        return []
+    out = []
+    for c in _search("Patient", family=fam, birthdate=dob):
+        cid = c.get("id")
+        if not cid or str(cid) == str(pid):
+            continue
+        allergies = _search("AllergyIntolerance", patient=cid)
+        flags = [f for f in _search("Flag", patient=cid) if f.get("status") == "active"]
+        out.append({
+            "id": cid,
+            "mrn": _mrn(c),
+            "name": _patient_name(c),
+            "dob": c.get("birthDate", ""),
+            "allergy_count": len(allergies),
+            "flag_count": len(flags),
+            "allergies": [_cc_text(a.get("code")) or "unknown" for a in allergies],
+        })
+        if len(out) >= max_candidates:
+            break
+    return out
+
+
 # --------------------------------------------------------------------------
 # fetch + transform
 # --------------------------------------------------------------------------
@@ -127,6 +166,7 @@ def fetch_patient_bundle(pid):
         "allergies": _search("AllergyIntolerance", patient=pid),
         "flags": _search("Flag", patient=pid),
         "meds": _search("MedicationRequest", patient=pid),
+        "duplicates": find_possible_duplicates(patient, pid),
     }
 
 
@@ -167,7 +207,153 @@ def transform_to_card(bundle):
         "safety_alerts": safety_alerts,   # <-- the gap this project closes
         "allergies": allergies,           # <-- specificity that usually gets lost
         "medications": meds,
+        # Flagged, never resolved: a second chart may exist for this human.
+        "possible_duplicates": bundle.get("duplicates") or [],
     }
+
+
+# --------------------------------------------------------------------------
+# THE RETURN PATH  (ePCR -> hospital)
+#
+# The mirror of transform_to_card(). Flat crew report in, FHIR out.
+#
+# These emit FULLY CODED CodeableConcepts -- coding AND text. Pushing bare text
+# back would recreate, in the opposite direction, the exact specificity loss
+# this project exists to fix on the way in.
+#
+# LOINC codes below are real. Interventions are deliberately left text-coded:
+# inventing SNOMED codes we cannot verify would be worse than honestly saying
+# "this needs a terminology binding in production".
+# --------------------------------------------------------------------------
+LOINC = "http://loinc.org"
+UCUM = "http://unitsofmeasure.org"
+
+# (code, official LOINC display, unit label, UCUM code, human text)
+# display stays the official LOINC term; text is what a clinician actually reads.
+VITALS = {
+    "heart_rate":  ("8867-4",  "Heart rate",             "beats/min",   "/min",    "Heart rate"),
+    "resp_rate":   ("9279-1",  "Respiratory rate",       "breaths/min", "/min",    "Respiratory rate"),
+    "spo2":        ("59408-5", "Oxygen saturation in Arterial blood by Pulse oximetry",
+                    "%", "%", "SpO\u2082"),
+    "temperature": ("8310-5",  "Body temperature",       "\u00b0C",      "Cel",     "Temperature"),
+    "gcs":         ("9269-2",  "Glasgow coma score total", "",          "{score}", "Glasgow coma score"),
+}
+
+
+# Glucose is reported in mmol/L in Canada/UK and mg/dL in the US. These are
+# DIFFERENT LOINC codes, not the same code with a different label -- sending 4
+# under the mg/dL code describes an unsurvivable patient. Units are part of the
+# terminology binding.
+GLUCOSE = {
+    "mmol/L": ("15074-8", "Glucose [Moles/volume] in Blood", "mmol/L", "mmol/L"),
+    "mg/dL":  ("2339-0",  "Glucose [Mass/volume] in Blood",  "mg/dL",  "mg/dL"),
+}
+
+
+def _loinc(code, display, text=None):
+    """text is the human rendering; display stays the official LOINC term."""
+    return {"coding": [{"system": LOINC, "code": code, "display": display}],
+            "text": text or display}
+
+
+def _qty(value, unit, ucum):
+    """Quantity.unit is the human display and is optional -- GCS has no unit
+    worth printing, and rendering '14 score' reads wrong on a chart."""
+    q = {"value": value, "system": UCUM, "code": ucum}
+    if unit:
+        q["unit"] = unit
+    return q
+
+
+def _vital_category():
+    return [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                         "code": "vital-signs", "display": "Vital Signs"}]}]
+
+
+def _num(v):
+    """Numeric, but keep whole numbers whole -- a BP of 88.0 reads wrong."""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return int(f) if f.is_integer() else f
+
+
+def transform_to_fhir(pid, report, unit="MEDIC 4", when=None):
+    """Flat crew report -> list of FHIR Observation / Procedure resources."""
+    when = when or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    subject = {"reference": f"Patient/{pid}"}
+    performer = [{"display": unit}]
+    out = []
+
+    for key, (code, display, unit_txt, ucum, text) in VITALS.items():
+        val = _num(report.get(key))
+        if val is None:
+            continue
+        out.append({
+            "resourceType": "Observation", "status": "final",
+            "category": _vital_category(), "code": _loinc(code, display, text=text),
+            "subject": subject, "effectiveDateTime": when, "performer": performer,
+            "valueQuantity": _qty(val, unit_txt, ucum),
+        })
+
+    glu = _num(report.get("glucose"))
+    if glu is not None:
+        code, display, unit_txt, ucum = GLUCOSE.get(report.get("glucose_unit"), GLUCOSE["mmol/L"])
+        out.append({
+            "resourceType": "Observation", "status": "final",
+            "category": _vital_category(), "code": _loinc(code, display, text="Blood glucose"),
+            "subject": subject, "effectiveDateTime": when, "performer": performer,
+            "valueQuantity": _qty(glu, unit_txt, ucum),
+        })
+
+    # Blood pressure is ONE Observation with two components -- not two
+    # Observations. This is the shape the spec actually calls for.
+    sys_v, dia_v = _num(report.get("bp_systolic")), _num(report.get("bp_diastolic"))
+    if sys_v is not None and dia_v is not None:
+        out.append({
+            "resourceType": "Observation", "status": "final",
+            "category": _vital_category(),
+            "code": _loinc("85354-9", "Blood pressure panel with all children optional",
+                           text="Blood pressure"),
+            "subject": subject, "effectiveDateTime": when, "performer": performer,
+            "component": [
+                {"code": _loinc("8480-6", "Systolic blood pressure"),
+                 "valueQuantity": _qty(sys_v, "mmHg", "mm[Hg]")},
+                {"code": _loinc("8462-4", "Diastolic blood pressure"),
+                 "valueQuantity": _qty(dia_v, "mmHg", "mm[Hg]")},
+            ],
+        })
+
+    for text in report.get("interventions") or []:
+        text = (text or "").strip()
+        if not text:
+            continue
+        out.append({
+            "resourceType": "Procedure", "status": "completed",
+            "code": {"text": text},          # text-only, on purpose -- see note above
+            "subject": subject, "performedDateTime": when,
+            "performer": [{"actor": {"display": unit}}],
+        })
+    return out
+
+
+def push_report(pid, report, unit="MEDIC 4"):
+    """Transform a crew report and POST it to the hospital. Returns per-resource results."""
+    results = []
+    for res in transform_to_fhir(pid, report, unit=unit):
+        rtype = res["resourceType"]
+        label = _cc_text(res.get("code")) or rtype
+        try:
+            r = requests.post(f"{HOSPITAL_BASE}/{rtype}", json=res, timeout=TIMEOUT)
+            ok = r.status_code in (200, 201)
+            rid = r.json().get("id") if ok else None
+            results.append({"resourceType": rtype, "label": label, "ok": ok,
+                            "status": r.status_code, "id": rid})
+        except requests.RequestException as e:
+            results.append({"resourceType": rtype, "label": label, "ok": False,
+                            "status": None, "id": None, "error": type(e).__name__})
+    return results
 
 
 def pre_arrival_card(pid):

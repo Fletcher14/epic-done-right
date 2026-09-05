@@ -16,7 +16,55 @@ At handoff, two failures happen constantly:
 2. **Safety flags don't reach the crew in time.** The EHR carries a documented
    violence-toward-staff flag. The crew finds out on arrival, not before.
 
-Both are already *in the hospital system*. The gap is delivery, not data.
+3. **Split charts hide safety data.** The same human registered twice means the
+   crew reading one chart sees half the allergy list — and never knows it.
+
+All three are already *in the hospital system*. The gap is delivery, not data.
+
+## Prior art — what already exists, and what doesn't
+This isn't a novel idea, and novelty isn't the point: the point is demonstrating the
+integration pattern end to end. What's actually on the market:
+
+- **ESO Health Data Exchange** — the commercial product this project mirrors.
+- **Siren Notification Board** (Medusa Medical, now an ESO product) — a web board that
+  alerts a receiving facility in real time to inbound patients, colour-coded by priority.
+
+Both are strongest in the **EMS → hospital** direction: *the crew is coming, here's what
+we have.* That direction is commercially solved.
+
+The direction this project leads with is the other one — **hospital → EMS, before
+arrival.** The allergy specificity and the safety flag the hospital *already holds*,
+pushed out to the crew while they're still en route. Even with a notification board fully
+deployed, the crew still doesn't learn about the anaphylaxis or the violence-toward-staff
+flag until they walk through the door.
+
+One more thing worth saying plainly: this capability frequently exists in products a
+service already licenses and simply isn't switched on. When that's the case the obstacle
+isn't technical — it's that the seam between two organisations has no owner and no budget
+line. The person who'd approve it carries all the downside risk and none of the credit.
+
+## Identity: flagged, never resolved
+Patient matching is the genuinely hard problem in EMS↔hospital exchange, and it is
+**deliberately not solved here**. The bridge searches for other charts with the same
+family name *and* birth date, and if it finds one it reports:
+
+> ⚠ POSSIBLE DUPLICATE CHART — this patient may have 1 other chart on file.
+> ↳ 1 allergy not on this record: Sulfa drugs
+> *Not merged automatically — confirm identity with the patient or receiving facility.*
+
+It never merges, never scores, never picks a winner. A wrong merge is unrecoverable
+and the bridge is the worst-placed component in the system to make an identity call —
+it has the least context of anyone in the chain. So it surfaces the ambiguity and
+leaves the decision to a human, mirroring the "suggest, don't delete" behaviour of
+mature EHRs rather than the last-write-wins pattern that silently discards data.
+
+The demo shows why it matters: `pt-001` carries *Penicillin / anaphylaxis*, its
+duplicate `pt-004` carries *Sulfa / Stevens-Johnson*. A crew reading either chart
+alone gets half the picture.
+
+**Known trade-off:** detection costs up to three extra searches per candidate chart,
+so it is measurably slower against a real server. Capped at three candidates. A
+production version would push this to a proper MPI rather than doing it in the bridge.
 
 ## Architecture
 ```
@@ -29,13 +77,70 @@ Both are already *in the hospital system*. The gap is delivery, not data.
               FHIR resources in -> flat crew "pre-arrival card" out.
               Preserves allergy specificity; promotes safety Flags to top level.
 
-  epcr/       Mock ePCR (the "Siren/iNet" side, crew-facing).
-                :8002  /dispatch/<id>  -> renders the pre-arrival card in a browser
+  epcr/       Mock field system (the EMS side), modelled as three moments in one call:
+                :8002  /                       CAD  — active call list      [DISPATCHED]
+                       /dispatch/<id>          mobile — pre-arrival card    [EN ROUTE]
+                       /dispatch/<id>/report   ePCR  — record completion    [ePCR, post-call]
 
-  data/       Synthetic, hand-authored, FHIR-shaped patient records.
+  data/       patients.json    hospital's own records (FHIR-shaped, synthetic)
+              calls.json       CAD/call context — EMS side only
+              submissions.json append-only store of what the crew pushed back
 ```
 
-Data flow (one direction for v1): **hospital → bridge → ePCR**.
+Inbound:  **hospital → bridge → ePCR** (pre-arrival card)
+Outbound: **ePCR → bridge → hospital** (`Observation` + `Procedure`)
+
+## One call, three moments
+Real field software splits this across modules — dispatch, in-field mobile, records —
+and they are used at **different points in the call**. Collapsing them into one screen
+is what makes a demo read wrong to anyone who has actually run a call, so the EMS side
+is staged:
+
+| Screen | When | What it does |
+|---|---|---|
+| **Active calls** | dispatched | incident #, MPDS determinant, priority, unit, destination |
+| **Pre-arrival** | **en route** | the hospital's safety data arrives — *inbound payoff* |
+| **ePCR** | **after the call is cleared** | vitals + interventions filed → *outbound payoff* |
+
+A stage bar (`DISPATCHED → EN ROUTE → ON SCENE → TRANSPORT → AT HOSPITAL → ePCR`) runs
+across the top of each so the sequence is legible at a glance. It matters because the
+two integrations fire at opposite ends of the call: the pull happens *before* the crew
+reaches the patient, the push happens *after* they have left the hospital.
+
+Note the data separation: CAD context lives in `calls.json` on the EMS side. The
+hospital has no idea which unit is responding or what the determinant was — it
+shouldn't, and `patients.json` never carries it.
+
+## The return path (ePCR → hospital)
+The other half of a real bridge. The crew fills in vitals and interventions at
+`/dispatch/<id>/report`; `transform_to_fhir()` — the mirror of `transform_to_card()` —
+turns that flat form into proper FHIR and POSTs it back:
+
+| Crew enters | Becomes |
+|---|---|
+| HR 118 | `Observation` · LOINC `8867-4` · `118 /min` |
+| SpO₂ 94 | `Observation` · LOINC `59408-5` · `94 %` |
+| BP 88/54 | **one** `Observation` · LOINC `85354-9` with components `8480-6` / `8462-4` |
+| "IV access established" | `Procedure` · status `completed` · performer MEDIC 4 |
+
+Blood pressure is modelled the way the spec actually calls for — a single panel
+Observation with two components, not two separate Observations.
+
+The outbound transform emits **fully coded** CodeableConcepts (`coding` *and* `text`).
+Pushing bare text back would recreate, in the opposite direction, the exact
+specificity loss this project exists to fix on the way in. LOINC codes are real;
+interventions are deliberately left text-coded rather than inventing SNOMED codes
+that couldn't be verified — a production version needs a real terminology binding.
+
+**Append-only, by design.** Submissions land in a separate `data/submissions.json`
+and are given server-assigned ids and `meta.source = "#epcr-field-submission"`.
+Crew data never mutates the hospital's own record, nothing is overwritten and
+nothing is merged — same stance as the duplicate flagging. Read it back with:
+
+```bash
+curl "localhost:8001/fhir/Observation?patient=pt-001"
+curl "localhost:8001/fhir/Procedure?patient=pt-001"
+```
 
 ## Run it
 Two terminals (the ePCR calls the hospital):
@@ -49,7 +154,12 @@ python epcr/app.py              # http://localhost:8002
 ```
 
 Then open **http://localhost:8002** and dispatch to a patient.
-`pt-001` (Dwyer) is the one that shows both the severe allergy and the safety flag.
+`pt-001` (Dwyer) shows the severe allergy, the safety flag, *and* a possible
+duplicate chart. From the card, **+ FILE PATIENT REPORT** exercises the return path.
+
+The hospital also renders an EHR-style chart at **http://localhost:8001/chart/pt-001**
+— useful side by side with the crew view: the same safety flag is a small chip
+behind a tab there, and the first thing on the screen in the truck.
 
 Test the transform alone, no browser:
 ```bash
@@ -58,22 +168,45 @@ python bridge/bridge.py pt-001
 
 ## FHIR resources used
 `Patient`, `AllergyIntolerance`, `Flag`, `MedicationRequest` — all R4.
-The resource shapes match the real spec, so the same bridge logic points at a
-real FHIR server with only a base-URL change. To prove that, aim `HOSPITAL_BASE`
-in `bridge/bridge.py` at the public HAPI test server:
-`https://hapi.fhir.org/baseR4` (read-only, synthetic data, no auth).
 
-## Deliberately out of scope for v1
-- **Reverse direction** (ePCR → hospital: vitals, interventions, narrative pushed
-  back). This is v2 and is the other half of a real bidirectional bridge.
-- Auth / OAuth2 / SMART-on-FHIR. Real Epic needs it; a local demo doesn't.
-- A database. JSON on disk is enough to show the pattern.
+## Hardened against a real FHIR server
+The bridge is server-agnostic — point it anywhere with an env var:
+
+```bash
+FHIR_BASE=https://hapi.fhir.org/baseR4 python bridge/bridge.py 137206160
+```
+
+It was run against the public HAPI test server, and **three real failure classes
+surfaced that synthetic data never would have**:
+
+| Found | Why it broke | Fix |
+|---|---|---|
+| `KeyError: medicationCodeableConcept` | `medication[x]` is a FHIR **choice type** — a `MedicationRequest` carries either `medicationCodeableConcept` *or* `medicationReference` | handle both forms |
+| Allergies silently became `"unknown"` | `CodeableConcept.text` is **optional**; real records often carry only `coding[].display`. Defaulting to `"unknown"` destroyed the exact specificity this project exists to preserve | fall back `text → coding.display → coding.code` |
+| `HTTPError 410 Gone` | Real servers expire and delete resources | raise `PatientNotFound`, return a clean 404 |
+
+Also: one failing search (e.g. `Flag`) no longer takes the whole card down — the
+crew keeps their allergy list even if another resource type is unavailable.
+
+## Tests
+```bash
+pip install -r requirements-dev.txt
+python -m pytest tests/ -q
+```
+Transform-level and pure — dicts in, dicts out, no network, no running services.
+They assert the contract the project actually promises: allergy specificity survives,
+safety flags get promoted, *inactive* flags don't alarm the crew, duplicates are
+flagged but never resolved, and none of the real-world shapes above crash it.
+
+## Deliberately out of scope
+- **Patient matching / MPI.** Flagged, never resolved — see *Identity* above.
+- **Auth / OAuth2 / SMART-on-FHIR.** Real Epic access is gated on it; a local demo isn't.
+- **Audit logging and consent.** Both are mandatory in production, neither is here.
+- **A database.** JSON on disk is enough to show the pattern.
+- **Terminology binding for interventions.** Text-coded on purpose (see above).
 
 ## v2 roadmap (when v1 feels solid)
-1. Add the return path: an ePCR form that POSTs an `Observation` (vitals) and
-   `Procedure` (interventions) back to the hospital as FHIR.
-2. Point the bridge at the live HAPI server and handle real-world messiness
-   (missing fields, unexpected shapes).
+1. ~~Add the return path: an ePCR form that POSTs `Observation` + `Procedure` back.~~ **Done** — see *The return path*.
+2. ~~Point the bridge at the live HAPI server and handle real-world messiness.~~ **Done** — see *Hardened against a real FHIR server*.
 3. Add SMART-on-FHIR OAuth2 against a sandbox to make it deployment-shaped.
-```
 ```
