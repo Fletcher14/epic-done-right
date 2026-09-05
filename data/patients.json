@@ -1,0 +1,81 @@
+{
+  "patients": [
+    {
+      "id": "pt-001",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-001",
+        "name": [{"use": "official", "family": "Dwyer", "given": ["Margaret", "Anne"]}],
+        "gender": "female",
+        "birthDate": "1938-11-02",
+        "identifier": [{"system": "urn:mrn", "value": "MRN-448201"}]
+      },
+      "AllergyIntolerance": [
+        {
+          "resourceType": "AllergyIntolerance",
+          "id": "al-001",
+          "patient": {"reference": "Patient/pt-001"},
+          "code": {"text": "Penicillin"},
+          "criticality": "high",
+          "reaction": [{"manifestation": [{"text": "Anaphylaxis"}], "severity": "severe"}]
+        }
+      ],
+      "Flag": [
+        {
+          "resourceType": "Flag",
+          "id": "fl-001",
+          "status": "active",
+          "category": [{"text": "Safety"}],
+          "code": {"text": "History of violence toward staff"},
+          "subject": {"reference": "Patient/pt-001"}
+        }
+      ],
+      "MedicationRequest": [
+        {"resourceType": "MedicationRequest", "id": "med-001", "status": "active",
+         "medicationCodeableConcept": {"text": "Warfarin 5mg PO daily"}, "subject": {"reference": "Patient/pt-001"}},
+        {"resourceType": "MedicationRequest", "id": "med-002", "status": "active",
+         "medicationCodeableConcept": {"text": "Metoprolol 25mg PO BID"}, "subject": {"reference": "Patient/pt-001"}}
+      ]
+    },
+    {
+      "id": "pt-002",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-002",
+        "name": [{"use": "official", "family": "Osei", "given": ["Daniel"]}],
+        "gender": "male",
+        "birthDate": "1991-06-15",
+        "identifier": [{"system": "urn:mrn", "value": "MRN-771903"}]
+      },
+      "AllergyIntolerance": [],
+      "Flag": [],
+      "MedicationRequest": [
+        {"resourceType": "MedicationRequest", "id": "med-010", "status": "active",
+         "medicationCodeableConcept": {"text": "Salbutamol inhaler PRN"}, "subject": {"reference": "Patient/pt-002"}}
+      ]
+    },
+    {
+      "id": "pt-003",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-003",
+        "name": [{"use": "official", "family": "Reilly", "given": ["Sean"]}],
+        "gender": "male",
+        "birthDate": "1975-03-22",
+        "identifier": [{"system": "urn:mrn", "value": "MRN-559140"}]
+      },
+      "AllergyIntolerance": [
+        {
+          "resourceType": "AllergyIntolerance",
+          "id": "al-003",
+          "patient": {"reference": "Patient/pt-003"},
+          "code": {"text": "Sulfa drugs"},
+          "criticality": "low",
+          "reaction": [{"manifestation": [{"text": "Rash"}], "severity": "mild"}]
+        }
+      ],
+      "Flag": [],
+      "MedicationRequest": []
+    }
+  ]
+}
