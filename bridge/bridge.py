@@ -30,6 +30,12 @@ import os
 
 import requests
 
+import smart
+
+# None unless SMART_* is configured -- the bridge stays open by default so the
+# local demo and public open servers keep working.
+AUTH = smart.from_env()
+
 HOSPITAL_BASE = os.environ.get("FHIR_BASE", "http://localhost:8001/fhir")
 TIMEOUT = 15
 
@@ -41,8 +47,13 @@ class PatientNotFound(Exception):
 # --------------------------------------------------------------------------
 # transport
 # --------------------------------------------------------------------------
+def _auth_headers():
+    return AUTH.headers() if AUTH else {}
+
+
 def _get(path, **params):
-    r = requests.get(f"{HOSPITAL_BASE}/{path}", params=params, timeout=TIMEOUT)
+    r = requests.get(f"{HOSPITAL_BASE}/{path}", params=params, timeout=TIMEOUT,
+                     headers=_auth_headers())
     r.raise_for_status()
     return r.json()
 
@@ -355,7 +366,8 @@ def push_report(pid, report, unit="MEDIC 4"):
         rtype = res["resourceType"]
         label = _cc_text(res.get("code")) or rtype
         try:
-            r = requests.post(f"{HOSPITAL_BASE}/{rtype}", json=res, timeout=TIMEOUT)
+            r = requests.post(f"{HOSPITAL_BASE}/{rtype}", json=res, timeout=TIMEOUT,
+                              headers=_auth_headers())
             ok = r.status_code in (200, 201)
             rid = r.json().get("id") if ok else None
             results.append({"resourceType": rtype, "label": label, "ok": ok,

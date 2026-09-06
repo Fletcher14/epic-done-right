@@ -304,6 +304,57 @@ surfaced that synthetic data never would have**:
 Also: one failing search (e.g. `Flag`) no longer takes the whole card down — the
 crew keeps their allergy list even if another resource type is unavailable.
 
+## SMART on FHIR — Backend Services
+
+Real Epic access is gated on SMART, so an integration without it isn't deployable no
+matter how good the transform is. This implements the **Backend Services** profile.
+
+**Why that profile and not the other one** — this is the part worth getting right.
+SMART has two flavours, and they're for different situations:
+
+| | App Launch | **Backend Services** |
+|---|---|---|
+| Who initiates | a clinician clicks the app inside the EHR | a system, unattended |
+| Credential | authorization code + user session | **asymmetric signed JWT** |
+| Scopes | `patient/*`, `user/*` | `system/*` |
+
+Nobody clicks anything here: a unit is dispatched at 3am and the bridge pulls on its own.
+That makes this unambiguously Backend Services, and choosing App Launch would be the
+common way to get SMART wrong.
+
+```
+private key ──▶ signed JWT assertion (RS384, kid) ──▶ POST client_credentials
+             ──▶ short-lived access token ──▶ Authorization: Bearer on FHIR calls
+```
+
+The private key never leaves the machine. The server holds only the public JWKS, and each
+request carries a JWT signed with the private half — there is no shared secret to leak.
+
+```bash
+pip install -r requirements-smart.txt
+python bridge/smart_register.py                    # keypair + JWKS + register with the sandbox
+set -a && . secrets/smart.env && set +a
+python bridge/smart_check.py                       # acquire a token
+```
+
+**Verified against the SMART reference sandbox**, and the negative case is the one that
+proves the crypto is real rather than rubber-stamped:
+
+```
+correct key (registered)      →  access token issued, expires_in 300
+wrong key (never registered)  →  400 invalid_grant
+                                 "Unable to verify the token with any of the public keys found in..."
+```
+
+**Honest limitation:** that sandbox serves its FHIR endpoints in open mode, so the token
+isn't what gates reads there — an unauthenticated `$export` also returns 202. What is
+demonstrated is the **credential exchange**, which is exactly the part Epic gates. Proving
+enforcement end to end needs a server that actually refuses anonymous reads.
+
+**Auth is optional and off by default.** With no `SMART_*` environment set the bridge behaves
+exactly as before, so `docker compose up` and the HAPI examples keep working for anyone who
+clones this. `secrets/` is gitignored.
+
 ## Tests
 ```bash
 pip install -r requirements-dev.txt
@@ -325,8 +376,7 @@ flagged but never resolved, and none of the real-world shapes above crash it.
 - ~~Return path: an ePCR form that POSTs `Observation` + `Procedure` back.~~ **Done**
 - ~~Point the bridge at a live FHIR server and handle real-world messiness.~~ **Done**
 - ~~Package it so a stranger can run it.~~ **Done** — `docker compose up`
-- **SMART-on-FHIR** — the remaining gap between this and something deployable. Real Epic
-  access is gated on it. This bridge would need **SMART Backend Services** (`client_credentials`
-  with a signed JWT assertion and `system/*.read` scopes), not the App Launch flow — nothing is
-  clicked by a clinician here; a unit gets dispatched and the bridge pulls on its own.
+- ~~**SMART-on-FHIR** Backend Services auth.~~ **Done** — see *SMART on FHIR* above.
+- **Next:** a patient continuity layer — many sources in, one canonical record out, with the
+  matching-safety stance from *Identity* generalised across systems.
 ```
