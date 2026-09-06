@@ -279,7 +279,7 @@ PAGE = SHELL + """
 
   <div class="idstrip">
     <span class="nm">{{c.name}}</span>
-    <span class="dm">{{c.gender|upper}} · DOB {{c.dob}} · {{c.mrn}}</span>
+    <span class="dm">{{c.gender|upper}} · DOB {{c.dob or "—"}} · {{c.mrn or "MRN —"}}</span>
     {% if call %}<span class="inc">INC {{call.incident}} · {{call.nature}} · {{call.address}}
       · enr {{call.enroute}} → {{call.destination}}</span>{% endif %}
   </div>

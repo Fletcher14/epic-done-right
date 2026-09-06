@@ -66,10 +66,18 @@ record at all:
 
 ### The call, screen by screen
 
-**Dispatched — active calls.** 911 calls carry a linked hospital record; inter-facility
-transfers and non-medical transports don't, which is exactly where patient matching gets hard:
+**Dispatched — active calls.** 911 rows are **✓ VERIFIED** (identity confirmed by the crew at
+patient contact); transfer rows are **⚠ PARTIAL** — demographics auto-populated from the booking,
+routinely arriving with fields missing or misaligned, verified by nobody:
 
 ![CAD active call board](docs/screenshots/01-cad-active-calls.png)
+
+**The bridge declining to guess.** A STAT transfer whose auto-populated record arrived without a
+date of birth or MRN. Rather than render a confident-looking blank, the card names what is
+missing — and because identity can't be established, **the duplicate check is not attempted at
+all**. There is a test asserting exactly this silence:
+
+![Partial record — identity cannot be verified](docs/screenshots/06-partial-record.png)
 
 **ePCR — record completion, filed after the call is cleared:**
 
