@@ -12,7 +12,8 @@
       "destination": "Regional Medical Centre \u2014 ED",
       "dispatched": "14:02",
       "enroute": "14:04",
-      "eta": "9 min"
+      "eta": "9 min",
+      "record": "pending"
     },
     {
       "patient": "pt-002",
@@ -26,7 +27,8 @@
       "destination": "Regional Medical Centre \u2014 ED",
       "dispatched": "14:18",
       "enroute": "14:19",
-      "eta": "6 min"
+      "eta": "6 min",
+      "record": "pending"
     },
     {
       "patient": "pt-003",
@@ -40,7 +42,8 @@
       "destination": "Regional Medical Centre \u2014 ED",
       "dispatched": "14:31",
       "enroute": "14:32",
-      "eta": "4 min"
+      "eta": "4 min",
+      "record": "pending"
     },
     {
       "patient": "pt-004",
@@ -54,7 +57,8 @@
       "destination": "Regional Medical Centre \u2014 ED",
       "dispatched": "14:35",
       "enroute": "14:36",
-      "eta": "11 min"
+      "eta": "11 min",
+      "record": "pending"
     },
     {
       "patient": "pt-005",
@@ -68,7 +72,8 @@
       "destination": "Cardiac Centre \u2014 Cath Lab",
       "dispatched": "14:37",
       "enroute": "14:39",
-      "eta": "14 min"
+      "eta": "14 min",
+      "record": "partial"
     },
     {
       "patient": "pt-003",
@@ -82,7 +87,8 @@
       "destination": "Regional Medical Centre \u2014 Imaging",
       "dispatched": "14:41",
       "enroute": "14:44",
-      "eta": "38 min"
+      "eta": "38 min",
+      "record": "partial"
     },
     {
       "patient": "pt-002",
@@ -96,13 +102,14 @@
       "destination": "Pleasantview Long Term Care",
       "dispatched": "14:45",
       "enroute": "14:52",
-      "eta": "22 min"
+      "eta": "22 min",
+      "record": "partial"
     },
     {
-      "patient": null,
+      "patient": "pt-003",
       "incident": "2026-0905-0441",
       "type": "IFT",
-      "nature": "Routine transfer \u2014 ward to LTC",
+      "nature": "Routine transfer \u2014 palliative, ward to hospice",
       "determinant": "",
       "priority": "ROUTINE",
       "unit": "TRANSFER 1",
@@ -110,7 +117,8 @@
       "destination": "Harbourview Manor",
       "dispatched": "14:48",
       "enroute": "\u2014",
-      "eta": "queued"
+      "eta": "queued",
+      "record": "palliative"
     },
     {
       "patient": null,
@@ -124,7 +132,8 @@
       "destination": "14 Torbay Road",
       "dispatched": "14:50",
       "enroute": "\u2014",
-      "eta": "queued"
+      "eta": "queued",
+      "record": "none"
     },
     {
       "patient": null,
@@ -138,7 +147,8 @@
       "destination": "Regional Medical Centre \u2014 Ambulatory",
       "dispatched": "14:55",
       "enroute": "\u2014",
-      "eta": "queued"
+      "eta": "queued",
+      "record": "none"
     }
   ]
 }

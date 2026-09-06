@@ -110,6 +110,10 @@ CSS = """
  .typ.t911{background:#fdeaea;border-color:#d98080;color:#8e1b1b}
  .typ.tIFT{background:#eef2f8;border-color:#9fb3cc;color:#2c4a70}
  .typ.tNMT{background:#f1f3f5;border-color:#c0c7ce;color:#5a6b7d}
+ .pending{background:#eef2f8;border:1px solid #9fb3cc;color:#2c4a70;font-size:.6rem;font-weight:700;
+          padding:.06rem .3rem;border-radius:2px;white-space:nowrap}
+ .palli{background:#f3ecfa;border:1px solid #a98cc9;color:#4a2f6b;font-size:.6rem;font-weight:700;
+        padding:.06rem .3rem;border-radius:2px;white-space:nowrap}
  .partial{background:#fdf4e3;border:1px solid #d9a441;color:#7a520a;font-size:.6rem;font-weight:700;
           padding:.06rem .3rem;border-radius:2px;white-space:nowrap}
  .nolink{color:#a8b4be;font-family:ui-monospace,monospace;font-size:.72rem}
@@ -244,17 +248,20 @@ CALLS_PAGE = SHELL + """
       <td class="mono">{{c.dispatched}}</td>
       <td class="mono">{{c.eta}}</td>
       <td>{{c.destination}}</td>
-      <td>{% if c.patient and c.type == '911' %}<span class="linked">✓ VERIFIED</span>
-          {% elif c.patient %}<span class="partial">⚠ PARTIAL</span>
+      <td>{% if c.record == 'pending' %}<span class="pending">PENDING</span>
+          {% elif c.record == 'palliative' %}<span class="palli">✦ PALLIATIVE CHART</span>
+          {% elif c.record == 'partial' %}<span class="partial">⚠ PARTIAL</span>
           {% else %}<span class="nolink">—</span>{% endif %}</td>
     </tr>
     {% endfor %}
   </table>
   <div class="legend">
-    <b>✓ VERIFIED</b> — identity confirmed by the crew at patient contact (999/911).
-    <b>⚠ PARTIAL</b> — demographics auto-populated from the booking on transfers and
-    non-emergency calls; commonly arrives with fields missing or misaligned, and
-    <i>nobody has verified it</i>.
+    <b>PENDING</b> — 911: nothing linked at dispatch; identity is established when the crew
+    arrives on scene. &nbsp;<b>⚠ PARTIAL</b> — transfers and non-emergency calls: demographics
+    auto-populated from the booking, commonly arriving with fields missing or misaligned.
+    &nbsp;<b>✦ PALLIATIVE CHART</b> — the one clinical record that is linked today.
+    <br><i>No other clinical record crosses: allergies, safety flags and medication lists
+    are not connected for any call type.</i>
   </div>
  </div>
 """ + FOOT

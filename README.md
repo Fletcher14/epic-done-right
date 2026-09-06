@@ -26,14 +26,25 @@ A cross-vendor demographic integration already exists and runs every day. It jus
 involve the EHR:
 
 ```
-transfer booking  ──▶  iNetCAD  ──▶  Siren ePCR     demographics (partial)
+transfer booking  ──▶  iNetCAD  ──▶  Siren ePCR    demographics, partial
+palliative chart  ──▶  iNetCAD                     the ONE clinical record that links
 Epic              ──╳                              nothing, either direction
 ```
 
 On transfers and other non-emergency calls the patient is already known, so demographics flow
-down that chain — arriving often enough with fields missing or misaligned that crews don't
-fully trust them. On a **911 call**, where the patient is unknown, the clock is running, and
-the hospital is sitting on the allergy severity and the safety flag, **nothing crosses at all.**
+down that chain — arriving often enough with fields missing or misaligned that crews treat them
+with caution. On a **911 call**, where the patient is unknown, the clock is running, and the
+hospital is sitting on the allergy severity and the safety flag, **nothing crosses at all**;
+identity is established when the crew reaches the patient.
+
+And there is exactly **one clinical record that does link**: if a patient is palliative, the CAD
+is configured to pull their palliative care chart. That's the whole list. One record type, one
+population. Allergies, safety flags and medication lists don't cross for anyone.
+
+That single working link is the most useful fact in this document, because it dismantles the
+"integration is hard" objection by itself. The connection has already been built once, on
+purpose, and it works. What's missing isn't capability — it's a decision about which records
+are worth connecting.
 
 Two things follow, and together they're why *"why would it help"* is the wrong question:
 
@@ -66,9 +77,10 @@ record at all:
 
 ### The call, screen by screen
 
-**Dispatched — active calls.** 911 rows are **✓ VERIFIED** (identity confirmed by the crew at
-patient contact); transfer rows are **⚠ PARTIAL** — demographics auto-populated from the booking,
-routinely arriving with fields missing or misaligned, verified by nobody:
+**Dispatched — active calls**, showing what links today. **PENDING** — 911, nothing available
+until the crew reaches the patient. **⚠ PARTIAL** — transfers, demographics auto-populated from
+the booking, commonly with fields missing or misaligned. **✦ PALLIATIVE CHART** — the single
+clinical record that is actually connected:
 
 ![CAD active call board](docs/screenshots/01-cad-active-calls.png)
 
@@ -130,8 +142,7 @@ mature EHRs rather than the last-write-wins pattern that silently discards data.
 non-emergency calls **auto-populate patient demographics from the booking**, while 911 calls
 don't — nobody knows who the patient is until contact. That auto-population is routinely
 wrong, and the usual flavour isn't "wrong human": it's a field or two **missing or
-misaligned**, so the crew starts from a record that *looks* populated and has been verified
-by nobody.
+misaligned**, so the crew starts from a record that *looks* populated but is incomplete.
 
 That is this project's own thesis one layer over. Allergy specificity degrading between
 hospital and crew; demographics degrading between booking and ePCR. The same data decay, at
