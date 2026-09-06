@@ -21,6 +21,39 @@ At handoff, two failures happen constantly:
 
 All three are already *in the hospital system*. The gap is delivery, not data.
 
+## Screens
+
+### The argument, in two images
+Same patient, same moment. The hospital has held this data the whole time.
+
+**Hospital chart (EHR side)** — the violence-toward-staff flag is a 12-pixel `⚑ 1` chip in the
+banner, its detail behind the *Flags* tab:
+
+![Hospital chart with the safety flag behind a tab](docs/screenshots/05-hospital-chart.png)
+
+**Pre-arrival, en route (crew side)** — the same flag is the first thing on the screen, before
+they reach the patient. Below it, a duplicate-chart warning notes an allergy that isn't on this
+record at all:
+
+![Pre-arrival card with safety alert and duplicate warning](docs/screenshots/02-pre-arrival.png)
+
+### The call, screen by screen
+
+**Dispatched — active calls.** 911 calls carry a linked hospital record; inter-facility
+transfers and non-medical transports don't, which is exactly where patient matching gets hard:
+
+![CAD active call board](docs/screenshots/01-cad-active-calls.png)
+
+**ePCR — record completion, filed after the call is cleared:**
+
+![ePCR vitals and treatments](docs/screenshots/03-epcr-report.png)
+
+**Transmitted — the return path.** Vitals become LOINC-coded `Observation`s (blood pressure as a
+single panel with two components), interventions become `Procedure`s, each appended with a
+server-assigned id — nothing merged, nothing overwritten:
+
+![Transmission result, 11 of 11 accepted](docs/screenshots/04-epcr-transmitted.png)
+
 ## Prior art — what already exists, and what doesn't
 This isn't a novel idea, and novelty isn't the point: the point is demonstrating the
 integration pattern end to end. What's actually on the market:
@@ -223,8 +256,12 @@ flagged but never resolved, and none of the real-world shapes above crash it.
 - **A database.** JSON on disk is enough to show the pattern.
 - **Terminology binding for interventions.** Text-coded on purpose (see above).
 
-## v2 roadmap (when v1 feels solid)
-1. ~~Add the return path: an ePCR form that POSTs `Observation` + `Procedure` back.~~ **Done** — see *The return path*.
-2. ~~Point the bridge at the live HAPI server and handle real-world messiness.~~ **Done** — see *Hardened against a real FHIR server*.
-3. Add SMART-on-FHIR OAuth2 against a sandbox to make it deployment-shaped.
+## Roadmap
+- ~~Return path: an ePCR form that POSTs `Observation` + `Procedure` back.~~ **Done**
+- ~~Point the bridge at a live FHIR server and handle real-world messiness.~~ **Done**
+- ~~Package it so a stranger can run it.~~ **Done** — `docker compose up`
+- **SMART-on-FHIR** — the remaining gap between this and something deployable. Real Epic
+  access is gated on it. This bridge would need **SMART Backend Services** (`client_credentials`
+  with a signed JWT assertion and `system/*.read` scopes), not the App Launch flow — nothing is
+  clicked by a clinician here; a unit gets dispatched and the bridge pulls on its own.
 ```

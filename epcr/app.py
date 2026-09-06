@@ -309,8 +309,8 @@ FORM_PAGE = SIREN_SHELL + """
    <div class="tgrid">
     {% for i in interventions %}<label class="tchk"><input type="checkbox" name="intervention" value="{{i}}">{{i}}</label>{% endfor %}
    </div>
-   <div style="margin-top:.45rem"><label class="sf">Other / narrative note</label>
-     <input type="text" name="other" placeholder="free text"></div>
+   <div style="margin-top:.45rem"><label class="sf">Other intervention</label>
+     <input type="text" name="other" placeholder="e.g. splinting applied"></div>
   </div></div>
   <button class="sbtn" type="submit">TRANSMIT TO RECEIVING FACILITY →</button>
  </form>

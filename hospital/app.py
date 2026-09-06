@@ -110,7 +110,13 @@ def index():
 # the receiving system decides what to do with it. Same stance as the duplicate
 # flagging: the bridge reports, humans adjudicate.
 # ---------------------------------------------------------------------------
-SUBMISSIONS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "submissions.json")
+# Runtime state, deliberately NOT alongside the hospital's own records: under
+# Docker patients.json is mounted read-only and this lives on a writable volume,
+# so "crew submissions never mutate the hospital record" is enforced by the
+# filesystem rather than merely asserted.
+SUBMISSIONS_PATH = os.environ.get(
+    "SUBMISSIONS_PATH",
+    os.path.join(os.path.dirname(__file__), "..", "data", "submissions.json"))
 ACCEPTED_TYPES = ("Observation", "Procedure")
 
 
@@ -126,6 +132,7 @@ _SUBMITTED = _load_submissions()
 
 
 def _save_submissions():
+    os.makedirs(os.path.dirname(os.path.abspath(SUBMISSIONS_PATH)), exist_ok=True)
     with open(SUBMISSIONS_PATH, "w") as fh:
         json.dump({"resources": _SUBMITTED}, fh, indent=2)
 
@@ -153,7 +160,13 @@ def _accept(resource_type):
     # provenance: this did NOT originate in the EHR
     meta["source"] = "#epcr-field-submission"
     _SUBMITTED.append(body)
-    _save_submissions()
+    try:
+        _save_submissions()
+    except OSError as exc:
+        _SUBMITTED.pop()          # roll back: don't serve what we couldn't store
+        return jsonify({"resourceType": "OperationOutcome", "issue": [{
+            "severity": "error", "code": "transient",
+            "diagnostics": f"could not persist submission: {exc.strerror}"}]}), 503
 
     resp = jsonify(body)
     resp.status_code = 201

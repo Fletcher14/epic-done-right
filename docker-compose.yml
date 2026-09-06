@@ -9,8 +9,10 @@ services:
     command: python hospital/app.py
     environment:
       HOST: 0.0.0.0
+      SUBMISSIONS_PATH: /app/state/submissions.json
     volumes:
-      - ./data:/app/data          # writable: receives the crew's submissions
+      - ./data:/app/data:ro       # the hospital's OWN records -- read-only
+      - edr-state:/app/state      # runtime store the container owns and can write
     ports:
       - "8001:8001"
     healthcheck:
@@ -37,3 +39,6 @@ services:
       hospital:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  edr-state:
