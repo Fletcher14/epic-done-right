@@ -110,7 +110,10 @@ CSS = """
  .typ.t911{background:#fdeaea;border-color:#d98080;color:#8e1b1b}
  .typ.tIFT{background:#eef2f8;border-color:#9fb3cc;color:#2c4a70}
  .typ.tNMT{background:#f1f3f5;border-color:#c0c7ce;color:#5a6b7d}
+ .partial{background:#fdf4e3;border:1px solid #d9a441;color:#7a520a;font-size:.6rem;font-weight:700;
+          padding:.06rem .3rem;border-radius:2px;white-space:nowrap}
  .nolink{color:#a8b4be;font-family:ui-monospace,monospace;font-size:.72rem}
+ .legend{padding:.4rem .65rem;font-size:.72rem;color:#5c6d80;border-top:1px solid #dde4ec;background:#fbfcfe}
  .calls tr.dead:hover{background:transparent;cursor:default}
  .calls td{padding:.34rem .3rem;font-size:.8rem}
  .calls tr:hover{background:#f5f8fc;cursor:pointer}
@@ -241,11 +244,18 @@ CALLS_PAGE = SHELL + """
       <td class="mono">{{c.dispatched}}</td>
       <td class="mono">{{c.eta}}</td>
       <td>{{c.destination}}</td>
-      <td>{% if c.patient %}<span class="linked">✓ REC LINKED</span>
-          {% else %}<span class="nolink">— no match</span>{% endif %}</td>
+      <td>{% if c.patient and c.type == '911' %}<span class="linked">✓ VERIFIED</span>
+          {% elif c.patient %}<span class="partial">⚠ PARTIAL</span>
+          {% else %}<span class="nolink">—</span>{% endif %}</td>
     </tr>
     {% endfor %}
   </table>
+  <div class="legend">
+    <b>✓ VERIFIED</b> — identity confirmed by the crew at patient contact (999/911).
+    <b>⚠ PARTIAL</b> — demographics auto-populated from the booking on transfers and
+    non-emergency calls; commonly arrives with fields missing or misaligned, and
+    <i>nobody has verified it</i>.
+  </div>
  </div>
 """ + FOOT
 
@@ -253,6 +263,11 @@ PAGE = SHELL + """
   {% for alert in c.safety_alerts %}
     <div class="banner b-red"><span class="tag">SAFETY</span><span class="txt">{{alert}}</span></div>
   {% endfor %}
+  {% if c.record_gaps %}
+    <div class="banner b-amber"><span class="tag">INCOMPLETE</span>
+      <span class="txt">Auto-populated record — {{c.record_gaps|join(" and ")}} not provided</span>
+      <span class="sub">identity cannot be verified · duplicate check not attempted</span></div>
+  {% endif %}
   {% if c.possible_duplicates %}
     <div class="banner b-amber"><span class="tag">IDENTITY</span>
       <span class="txt">Possible duplicate chart — allergy list may be incomplete</span>

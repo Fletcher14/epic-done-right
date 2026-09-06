@@ -91,7 +91,25 @@ it has the least context of anyone in the chain. So it surfaces the ambiguity an
 leaves the decision to a human, mirroring the "suggest, don't delete" behaviour of
 mature EHRs rather than the last-write-wins pattern that silently discards data.
 
-The demo shows why it matters: `pt-001` carries *Penicillin / anaphylaxis*, its
+**This failure is already shipping.** On the system I use day to day, transfers and other
+non-emergency calls **auto-populate patient demographics from the booking**, while 911 calls
+don't — nobody knows who the patient is until contact. That auto-population is routinely
+wrong, and the usual flavour isn't "wrong human": it's a field or two **missing or
+misaligned**, so the crew starts from a record that *looks* populated and has been verified
+by nobody.
+
+That is this project's own thesis one layer over. Allergy specificity degrading between
+hospital and crew; demographics degrading between booking and ePCR. The same data decay, at
+the same kind of seam — one that no single system owns.
+
+The demo reflects it rather than pretending otherwise. The call board marks 911 records
+**✓ VERIFIED** (identity confirmed at patient contact) and transfer records **⚠ PARTIAL**
+(auto-populated, unverified). Open the STAT transfer and the pre-arrival card states plainly
+what didn't come across — and because there is no date of birth, **the bridge does not even
+attempt a duplicate check**. Incomplete data in, honest degradation out, instead of a
+confident-looking blank.
+
+The demo also shows why it matters: `pt-001` carries *Penicillin / anaphylaxis*, its
 duplicate `pt-004` carries *Sulfa / Stevens-Johnson*. A crew reading either chart
 alone gets half the picture.
 

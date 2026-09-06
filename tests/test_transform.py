@@ -223,3 +223,18 @@ def test_glucose_unit_selects_the_correct_loinc_code():
 def test_glucose_defaults_to_mmol_when_unit_missing():
     obs = bridge.transform_to_fhir("p", {"glucose": "4"})[0]
     assert obs["code"]["coding"][0]["code"] == "15074-8"
+
+
+# --- partial records: say what's missing rather than render confident blanks ----
+def test_partial_record_reports_its_gaps():
+    """Auto-populated records arrive with fields missing; the card names them."""
+    card = bridge.transform_to_card(_bundle(
+        patient={"name": [{"family": "Kavanagh", "given": ["J"]}], "gender": "male"}))
+    assert card["record_gaps"] == ["date of birth", "MRN"]
+
+
+def test_complete_record_reports_no_gaps():
+    card = bridge.transform_to_card(_bundle(patient={
+        "name": [{"family": "Dwyer", "given": ["Margaret"]}],
+        "birthDate": "1938-11-02", "identifier": [{"value": "MRN-448201"}]}))
+    assert card["record_gaps"] == []

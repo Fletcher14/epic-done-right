@@ -199,8 +199,18 @@ def transform_to_card(bundle):
     meds = [name for name in (_med_name(m) for m in bundle.get("meds") or []
                               if m.get("status") == "active") if name]
 
+    # Auto-populated records routinely arrive partly filled -- a field or two
+    # missing or misaligned. Say so rather than rendering confident-looking blanks:
+    # without a birth date the duplicate check below cannot even run.
+    gaps = []
+    if not p.get("birthDate"):
+        gaps.append("date of birth")
+    if not _mrn(p):
+        gaps.append("MRN")
+
     return {
         "name": _patient_name(p),
+        "record_gaps": gaps,
         "mrn": _mrn(p),
         "dob": p.get("birthDate", ""),
         "gender": p.get("gender", ""),
