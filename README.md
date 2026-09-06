@@ -55,8 +55,9 @@ Two things follow, and together they're why *"why would it help"* is the wrong q
    and there is time. 911 is unknown, unscheduled and time-critical — and that's the one with
    no path.
 
-The screenshots below reflect that split: **⚠ PARTIAL** is roughly today's reality on transfers,
-and **✓ VERIFIED** on a 911 call is the state this bridge would create — it does not exist today.
+The screenshots below reflect that split. **PENDING** and **⚠ PARTIAL** are roughly today's
+reality; the pre-arrival card that follows them is what this bridge would add, and does not
+exist today.
 
 
 ## Screens
@@ -148,9 +149,9 @@ That is this project's own thesis one layer over. Allergy specificity degrading 
 hospital and crew; demographics degrading between booking and ePCR. The same data decay, at
 the same kind of seam — one that no single system owns.
 
-The demo reflects it rather than pretending otherwise. The call board marks 911 records
-**✓ VERIFIED** (identity confirmed at patient contact) and transfer records **⚠ PARTIAL**
-(auto-populated, unverified). Open the STAT transfer and the pre-arrival card states plainly
+The demo reflects it rather than pretending otherwise. The call board marks 911 rows
+**PENDING** (nothing available until the crew reaches the patient) and transfer rows
+**⚠ PARTIAL** (auto-populated from the booking, commonly incomplete). Open the STAT transfer and the pre-arrival card states plainly
 what didn't come across — and because there is no date of birth, **the bridge does not even
 attempt a duplicate check**. Incomplete data in, honest degradation out, instead of a
 confident-looking blank.
