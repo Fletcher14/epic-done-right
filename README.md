@@ -21,6 +21,33 @@ At handoff, two failures happen constantly:
 
 All three are already *in the hospital system*. The gap is delivery, not data.
 
+### What's already connected in the service I work in
+A cross-vendor demographic integration already exists and runs every day. It just doesn't
+involve the EHR:
+
+```
+transfer booking  ──▶  iNetCAD  ──▶  Siren ePCR     demographics (partial)
+Epic              ──╳                              nothing, either direction
+```
+
+On transfers and other non-emergency calls the patient is already known, so demographics flow
+down that chain — arriving often enough with fields missing or misaligned that crews don't
+fully trust them. On a **911 call**, where the patient is unknown, the clock is running, and
+the hospital is sitting on the allergy severity and the safety flag, **nothing crosses at all.**
+
+Two things follow, and together they're why *"why would it help"* is the wrong question:
+
+1. **This organisation already builds and operates cross-vendor integrations.** The pattern,
+   the vendor relationships and the appetite are demonstrably there. The clinically richest
+   source simply isn't on the network.
+2. **The data flows where it's least needed.** Transfers are scheduled, the patient is known,
+   and there is time. 911 is unknown, unscheduled and time-critical — and that's the one with
+   no path.
+
+The screenshots below reflect that split: **⚠ PARTIAL** is roughly today's reality on transfers,
+and **✓ VERIFIED** on a 911 call is the state this bridge would create — it does not exist today.
+
+
 ## Screens
 
 ### The argument, in two images
