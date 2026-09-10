@@ -170,6 +170,7 @@ production version would push this to a proper MPI rather than doing it in the b
               Serves synthetic patients as FHIR R4 resources over HTTP.
                 :8001  /fhir/Patient/<id>, /fhir/AllergyIntolerance?patient=<id>,
                        /fhir/Flag?patient=<id>, /fhir/MedicationRequest?patient=<id>
+                       part 3: /fhir/Encounter, /fhir/Condition, /fhir/MedicationAdministration
 
   bridge/     The transform layer (the part that matters).
               FHIR resources in -> flat crew "pre-arrival card" out.
@@ -179,10 +180,13 @@ production version would push this to a proper MPI rather than doing it in the b
                 :8002  /                       CAD  — active call list      [DISPATCHED]
                        /dispatch/<id>          mobile — pre-arrival card    [EN ROUTE]
                        /dispatch/<id>/report   ePCR  — record completion    [ePCR, post-call]
+                       part 3: /fhir/Composition, /fhir/Provenance, /fhir/Practitioner (read-only)
 
   data/       patients.json    hospital's own records (FHIR-shaped, synthetic)
               calls.json       CAD/call context — EMS side only
               submissions.json append-only store of what the crew pushed back
+              outcomes.json    part 3 — hospital visits, diagnoses, treatments (scenario data)
+              epcr_reports.json part 3 — completed reports: attendants, signatures, field impression
 ```
 
 Inbound:  **hospital → bridge → ePCR** (pre-arrival card)
@@ -282,8 +286,29 @@ python bridge/bridge.py pt-001
 FHIR_BASE=https://hapi.fhir.org/baseR4 python bridge/bridge.py 137206160
 ```
 
+## Scenario data for part 3
+The next project in this series gets the hospital outcome back to the paramedic who ran the
+call. It needs things this demo never modelled: hospital visits with diagnoses and treatments
+(`data/outcomes.json`), and completed reports carrying attendants, licenses, signatures and a
+field impression (`data/epcr_reports.json`). Both were added **without changing anything that
+already worked**:
+
+- `patients.json` and `calls.json` are untouched. Scenario patients are reachable by id and by
+  search, but not listed in the hospital index that other tools rely on.
+- No scenario patient shares a family name and birth date with an existing one, so the
+  pre-arrival duplicate flag can't fire falsely on the existing board.
+- `GET /fhir/Procedure?patient=` still returns only field submissions. Hospital procedures come
+  back only when you ask by visit, with `?encounter=`.
+- The ePCR screens are unchanged; the reports are served as read-only FHIR. Who attended and who
+  signed live in `Provenance`, one per report version — an amendment is a new version, never an edit.
+
+Every record is there to pose a specific problem — each is labelled in the data file's
+`_scenarios` / `_scenario` fields.
+
 ## FHIR resources used
-`Patient`, `AllergyIntolerance`, `Flag`, `MedicationRequest` — all R4.
+`Patient`, `AllergyIntolerance`, `Flag`, `MedicationRequest` — all R4. For part 3's scenario
+data, also `Encounter`, `Condition`, `MedicationAdministration`, `Composition`, `Provenance` and
+`Practitioner`.
 
 ## Hardened against a real FHIR server
 The bridge is server-agnostic — point it anywhere with an env var:
@@ -365,6 +390,11 @@ They assert the contract the project actually promises: allergy specificity surv
 safety flags get promoted, *inactive* flags don't alarm the crew, duplicates are
 flagged but never resolved, and none of the real-world shapes above crash it.
 
+`tests/test_part3_mocks.py` covers the part 3 scenario data through Flask's test client (still no
+network). It checks first that the original roster, the duplicate search, the field-submission
+endpoint and the CAD board are exactly as they were, then that every reference in the new data
+resolves and every code comes from the real FHIR value sets.
+
 ## Deliberately out of scope
 - **Patient matching / MPI.** Flagged, never resolved — see *Identity* above.
 - **Auth / OAuth2 / SMART-on-FHIR.** Real Epic access is gated on it; a local demo isn't.
@@ -377,6 +407,8 @@ flagged but never resolved, and none of the real-world shapes above crash it.
 - ~~Point the bridge at a live FHIR server and handle real-world messiness.~~ **Done**
 - ~~Package it so a stranger can run it.~~ **Done** — `docker compose up`
 - ~~**SMART-on-FHIR** Backend Services auth.~~ **Done** — see *SMART on FHIR* above.
-- **Next:** a patient continuity layer — many sources in, one canonical record out, with the
-  matching-safety stance from *Identity* generalised across systems.
+- ~~A patient continuity layer — many sources in, one canonical record out.~~ **Done** —
+  [continuity-layer](https://github.com/Fletcher14/continuity-layer).
+- **In progress:** the return path to the clinician — the hospital outcome back to the paramedic who
+  ran the call. Scenario data for it is already here (see *Scenario data for part 3*).
 ```

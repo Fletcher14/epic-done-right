@@ -1,0 +1,1973 @@
+{
+  "_note": "Synthetic. Hospital visit outcomes for patient-lookup-portal (part 3). Kept apart from patients.json so the original roster -- which continuity-layer and the pre-arrival board depend on -- is untouched. Every visit exists to pose a problem the portal must handle.",
+  "_scenarios": {
+    "enc-0417": "comorbidities coded beside the admission diagnosis; a treatment linked only to a hidden comorbidity",
+    "enc-0421": "the straightforward case -- chest pain presenting, STEMI confirmed, PCI",
+    "enc-0430": "one of TWO visits for pt-003 within 24 hours of the same handover -> could not be confirmed",
+    "enc-0438": "the second pt-003 visit that makes enc-0430 ambiguous",
+    "enc-0802": "a visit behind a call older than 30 days",
+    "enc-0902": "reached through a nickname on the ePCR ('Dan') plus a matching MRN",
+    "enc-0903": "overdose shown, underlying opioid dependence withheld, psychiatric disposition coarsened",
+    "enc-0901": "every diagnosis protected -> 'not shared'",
+    "enc-0906": "patient unidentified at handoff, identified by the hospital later (temporary MRN)",
+    "enc-0904": "a STRANGER's visit -- only shown if the link rule wrongly attached a first-time patient",
+    "enc-0907": "stroke confirmed, tPA given -- still admitted",
+    "enc-0909": "still admitted on a provisional diagnosis -> final diagnosis not yet available"
+  },
+  "patients": [
+    {
+      "id": "pt-101",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-101",
+        "name": [
+          {
+            "use": "official",
+            "family": "Walsh",
+            "given": [
+              "Liam"
+            ]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1990-01-01",
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-500001",
+            "use": "official"
+          },
+          {
+            "system": "urn:mrn",
+            "value": "TEMP-7731",
+            "use": "temp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pt-102",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-102",
+        "name": [
+          {
+            "use": "official",
+            "family": "Coady",
+            "given": [
+              "Emma"
+            ]
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1982-04-09",
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-588231"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pt-103",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-103",
+        "name": [
+          {
+            "use": "official",
+            "family": "Pardy",
+            "given": [
+              "Kyle"
+            ]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1996-02-11",
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-620318"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pt-104",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-104",
+        "name": [
+          {
+            "use": "official",
+            "family": "Squires",
+            "given": [
+              "Rachel"
+            ]
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1988-10-30",
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-612004"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pt-105",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-105",
+        "name": [
+          {
+            "use": "official",
+            "family": "Fudge",
+            "given": [
+              "Gerald"
+            ]
+          }
+        ],
+        "gender": "male",
+        "birthDate": "1949-05-20",
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-734410"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pt-106",
+      "Patient": {
+        "resourceType": "Patient",
+        "id": "pt-106",
+        "name": [
+          {
+            "use": "official",
+            "family": "Mercer",
+            "given": [
+              "Doris"
+            ]
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1952-12-03",
+        "identifier": [
+          {
+            "system": "urn:mrn",
+            "value": "MRN-845120"
+          }
+        ]
+      }
+    }
+  ],
+  "Encounter": [
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0417",
+      "status": "in-progress",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "IMP",
+        "display": "inpatient encounter"
+      },
+      "subject": {
+        "reference": "Patient/pt-001"
+      },
+      "period": {
+        "start": "2026-09-05T14:50:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0417-cc"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "CC"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0417-ad"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "AD"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0417-af"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "CM"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0417-htn"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "CM"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0421",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "IMP",
+        "display": "inpatient encounter"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "period": {
+        "start": "2026-09-05T14:42:00-02:30",
+        "end": "2026-09-08T11:00:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0421-cc"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "CC"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0421-dd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0421-esrd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "CM"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "home"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0430",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "period": {
+        "start": "2026-09-05T14:55:00-02:30",
+        "end": "2026-09-05T18:30:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0430-dd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "home"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0438",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "period": {
+        "start": "2026-09-05T15:40:00-02:30",
+        "end": "2026-09-05T19:10:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0438-dd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "home"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0802",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "period": {
+        "start": "2026-08-02T11:55:00-02:30",
+        "end": "2026-08-02T14:10:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0802-dd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "home"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0902",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "period": {
+        "start": "2026-09-02T08:45:00-02:30",
+        "end": "2026-09-02T13:00:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0902-dd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "home"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0903",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "IMP",
+        "display": "inpatient encounter"
+      },
+      "subject": {
+        "reference": "Patient/pt-103"
+      },
+      "period": {
+        "start": "2026-09-03T02:45:00-02:30",
+        "end": "2026-09-04T16:00:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0903-od"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0903-oud"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "psy"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0901",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "IMP",
+        "display": "inpatient encounter"
+      },
+      "subject": {
+        "reference": "Patient/pt-104"
+      },
+      "period": {
+        "start": "2026-09-01T10:10:00-02:30",
+        "end": "2026-09-03T12:00:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0901-dd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "psy"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0906",
+      "status": "in-progress",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "IMP",
+        "display": "inpatient encounter"
+      },
+      "subject": {
+        "reference": "Patient/pt-101"
+      },
+      "period": {
+        "start": "2026-09-06T01:38:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0906-ad"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "AD"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0904",
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "EMER",
+        "display": "emergency"
+      },
+      "subject": {
+        "reference": "Patient/pt-102"
+      },
+      "period": {
+        "start": "2026-09-04T18:00:00-02:30",
+        "end": "2026-09-04T21:00:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0904-dd"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "DD"
+              }
+            ]
+          }
+        }
+      ],
+      "hospitalization": {
+        "dischargeDisposition": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+              "code": "home"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0907",
+      "status": "in-progress",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "IMP",
+        "display": "inpatient encounter"
+      },
+      "subject": {
+        "reference": "Patient/pt-105"
+      },
+      "period": {
+        "start": "2026-09-07T16:42:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0907-cc"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "CC"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0907-ad"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "AD"
+              }
+            ]
+          }
+        },
+        {
+          "condition": {
+            "reference": "Condition/cond-0907-htn"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "CM"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "enc-0909",
+      "status": "in-progress",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "IMP",
+        "display": "inpatient encounter"
+      },
+      "subject": {
+        "reference": "Patient/pt-106"
+      },
+      "period": {
+        "start": "2026-09-09T19:10:00-02:30"
+      },
+      "diagnosis": [
+        {
+          "condition": {
+            "reference": "Condition/cond-0909-ad"
+          },
+          "use": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                "code": "AD"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "Condition": [
+    {
+      "resourceType": "Condition",
+      "id": "cond-0417-cc",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "W19",
+            "display": "Unspecified fall"
+          }
+        ],
+        "text": "Unspecified fall"
+      },
+      "subject": {
+        "reference": "Patient/pt-001"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0417"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0417-ad",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "S72.0",
+            "display": "Fracture of neck of femur"
+          }
+        ],
+        "text": "Fracture of neck of femur"
+      },
+      "subject": {
+        "reference": "Patient/pt-001"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0417"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0417-af",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "I48.9",
+            "display": "Atrial fibrillation, unspecified"
+          }
+        ],
+        "text": "Atrial fibrillation, unspecified"
+      },
+      "subject": {
+        "reference": "Patient/pt-001"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0417"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0417-htn",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "I10",
+            "display": "Essential (primary) hypertension"
+          }
+        ],
+        "text": "Essential (primary) hypertension"
+      },
+      "subject": {
+        "reference": "Patient/pt-001"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0417"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0421-cc",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "R07.4",
+            "display": "Chest pain, unspecified"
+          }
+        ],
+        "text": "Chest pain, unspecified"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0421"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0421-dd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "I21.3",
+            "display": "ST elevation myocardial infarction of unspecified site"
+          }
+        ],
+        "text": "ST elevation myocardial infarction of unspecified site"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0421"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0421-esrd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "N18.6",
+            "display": "End stage renal disease"
+          }
+        ],
+        "text": "End stage renal disease"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0421"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0430-dd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "T78.2",
+            "display": "Anaphylactic shock, unspecified"
+          }
+        ],
+        "text": "Anaphylactic shock, unspecified"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0430"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0438-dd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "S06.0",
+            "display": "Concussion"
+          }
+        ],
+        "text": "Concussion"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0438"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0802-dd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "S61.4",
+            "display": "Open wound of hand"
+          }
+        ],
+        "text": "Open wound of hand"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0802"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0902-dd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "E87.5",
+            "display": "Hyperkalaemia"
+          }
+        ],
+        "text": "Hyperkalaemia"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0902"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0903-od",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "T40.2",
+            "display": "Poisoning by other opioids"
+          }
+        ],
+        "text": "Poisoning by other opioids"
+      },
+      "subject": {
+        "reference": "Patient/pt-103"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0903"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0903-oud",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "F11.2",
+            "display": "Opioid dependence syndrome"
+          }
+        ],
+        "text": "Opioid dependence syndrome"
+      },
+      "subject": {
+        "reference": "Patient/pt-103"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0903"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0901-dd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "F20.9",
+            "display": "Schizophrenia, unspecified"
+          }
+        ],
+        "text": "Schizophrenia, unspecified"
+      },
+      "subject": {
+        "reference": "Patient/pt-104"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0901"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0906-ad",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "S06.5",
+            "display": "Traumatic subdural haemorrhage"
+          }
+        ],
+        "text": "Traumatic subdural haemorrhage"
+      },
+      "subject": {
+        "reference": "Patient/pt-101"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0906"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0904-dd",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "J45.9",
+            "display": "Asthma, unspecified"
+          }
+        ],
+        "text": "Asthma, unspecified"
+      },
+      "subject": {
+        "reference": "Patient/pt-102"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0904"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0907-cc",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "R47.0",
+            "display": "Dysphasia and aphasia"
+          }
+        ],
+        "text": "Dysphasia and aphasia"
+      },
+      "subject": {
+        "reference": "Patient/pt-105"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0907"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0907-ad",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "I63.9",
+            "display": "Cerebral infarction, unspecified"
+          }
+        ],
+        "text": "Cerebral infarction, unspecified"
+      },
+      "subject": {
+        "reference": "Patient/pt-105"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0907"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0907-htn",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "I10",
+            "display": "Essential (primary) hypertension"
+          }
+        ],
+        "text": "Essential (primary) hypertension"
+      },
+      "subject": {
+        "reference": "Patient/pt-105"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0907"
+      }
+    },
+    {
+      "resourceType": "Condition",
+      "id": "cond-0909-ad",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "provisional"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "encounter-diagnosis"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/sid/icd-10",
+            "code": "A41.9",
+            "display": "Sepsis, unspecified organism"
+          }
+        ],
+        "text": "Sepsis, unspecified organism"
+      },
+      "subject": {
+        "reference": "Patient/pt-106"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0909"
+      }
+    }
+  ],
+  "Procedure": [
+    {
+      "resourceType": "Procedure",
+      "id": "hproc-0417-1",
+      "meta": {
+        "source": "#hospital"
+      },
+      "status": "completed",
+      "code": {
+        "text": "Hemiarthroplasty of hip"
+      },
+      "subject": {
+        "reference": "Patient/pt-001"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0417"
+      },
+      "performedDateTime": "2026-09-06T09:30:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0417-ad"
+        }
+      ]
+    },
+    {
+      "resourceType": "Procedure",
+      "id": "hproc-0421-1",
+      "meta": {
+        "source": "#hospital"
+      },
+      "status": "completed",
+      "code": {
+        "text": "Percutaneous coronary intervention"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0421"
+      },
+      "performedDateTime": "2026-09-05T15:20:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0421-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "Procedure",
+      "id": "hproc-0802-1",
+      "meta": {
+        "source": "#hospital"
+      },
+      "status": "completed",
+      "code": {
+        "text": "Wound closure with sutures"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0802"
+      },
+      "performedDateTime": "2026-08-02T12:40:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0802-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "Procedure",
+      "id": "hproc-0906-1",
+      "meta": {
+        "source": "#hospital"
+      },
+      "status": "completed",
+      "code": {
+        "text": "Craniotomy and evacuation of subdural haematoma"
+      },
+      "subject": {
+        "reference": "Patient/pt-101"
+      },
+      "encounter": {
+        "reference": "Encounter/enc-0906"
+      },
+      "performedDateTime": "2026-09-06T04:10:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0906-ad"
+        }
+      ]
+    }
+  ],
+  "MedicationAdministration": [
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0417-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Vitamin K1 (phytonadione) 10 mg IV"
+      },
+      "subject": {
+        "reference": "Patient/pt-001"
+      },
+      "context": {
+        "reference": "Encounter/enc-0417"
+      },
+      "effectiveDateTime": "2026-09-05T16:00:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0417-af"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0421-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Ticagrelor 180 mg PO"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "context": {
+        "reference": "Encounter/enc-0421"
+      },
+      "effectiveDateTime": "2026-09-05T14:55:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0421-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0430-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Epinephrine 0.5 mg IM"
+      },
+      "subject": {
+        "reference": "Patient/pt-003"
+      },
+      "context": {
+        "reference": "Encounter/enc-0430"
+      },
+      "effectiveDateTime": "2026-09-05T14:58:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0430-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0902-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Calcium gluconate 10% IV"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "context": {
+        "reference": "Encounter/enc-0902"
+      },
+      "effectiveDateTime": "2026-09-02T08:55:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0902-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0902-2",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Insulin regular with dextrose IV"
+      },
+      "subject": {
+        "reference": "Patient/pt-002"
+      },
+      "context": {
+        "reference": "Encounter/enc-0902"
+      },
+      "effectiveDateTime": "2026-09-02T09:05:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0902-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0903-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Naloxone 0.4 mg IV"
+      },
+      "subject": {
+        "reference": "Patient/pt-103"
+      },
+      "context": {
+        "reference": "Encounter/enc-0903"
+      },
+      "effectiveDateTime": "2026-09-03T02:50:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0903-od"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0903-2",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Buprenorphine-naloxone induction"
+      },
+      "subject": {
+        "reference": "Patient/pt-103"
+      },
+      "context": {
+        "reference": "Encounter/enc-0903"
+      },
+      "effectiveDateTime": "2026-09-04T09:00:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0903-oud"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0901-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Olanzapine 10 mg IM"
+      },
+      "subject": {
+        "reference": "Patient/pt-104"
+      },
+      "context": {
+        "reference": "Encounter/enc-0901"
+      },
+      "effectiveDateTime": "2026-09-01T10:40:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0901-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0904-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Salbutamol 5 mg nebulised"
+      },
+      "subject": {
+        "reference": "Patient/pt-102"
+      },
+      "context": {
+        "reference": "Encounter/enc-0904"
+      },
+      "effectiveDateTime": "2026-09-04T18:10:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0904-dd"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0907-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Alteplase (tPA) IV"
+      },
+      "subject": {
+        "reference": "Patient/pt-105"
+      },
+      "context": {
+        "reference": "Encounter/enc-0907"
+      },
+      "effectiveDateTime": "2026-09-07T17:05:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0907-ad"
+        }
+      ]
+    },
+    {
+      "resourceType": "MedicationAdministration",
+      "id": "madm-0909-1",
+      "status": "completed",
+      "medicationCodeableConcept": {
+        "text": "Piperacillin-tazobactam 4.5 g IV"
+      },
+      "subject": {
+        "reference": "Patient/pt-106"
+      },
+      "context": {
+        "reference": "Encounter/enc-0909"
+      },
+      "effectiveDateTime": "2026-09-09T19:40:00-02:30",
+      "reasonReference": [
+        {
+          "reference": "Condition/cond-0909-ad"
+        }
+      ]
+    }
+  ]
+}

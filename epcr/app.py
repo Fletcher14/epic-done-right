@@ -13,13 +13,24 @@ The pre-arrival pull happens before the crew reaches the patient; the ePCR push
 happens after the call is cleared. Collapsing them into one screen is what makes
 a demo read wrong to anyone who has run a call.
 
+Completed reports, added for patient-lookup-portal (part 3) -- read-only FHIR over
+data/epcr_reports.json. No screen changes; the CAD board and the three moments above are
+untouched:
+
+    /fhir/Practitioner/<id>                   attendant, license as identifier
+    /fhir/Composition?attester=Practitioner/<id>  reports a practitioner appears on
+    /fhir/Composition/<id>                    a report, latest version
+    /fhir/Composition/<id>/_history           every version of it
+    /fhir/Provenance?target=Composition/<id>  who attended each version, and who signed
+
 Run:  python epcr/app.py    (listens on :8002)
 Requires the hospital app on :8001.
 """
+import html
 import json
 import sys
 import os
-from flask import Flask, render_template_string, abort, request
+from flask import Flask, render_template_string, abort, request, jsonify
 import requests
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "bridge"))
@@ -408,6 +419,160 @@ def report_submit(pid):
     return render_template_string(RESULT_PAGE, results=results, pid=pid, call=call,
                                   tabs=section_tabs("Disposition"), title="ePCR — Transmitted",
                                   brand="MOCK ePCR", mode="TRANSMITTED")
+
+
+# ---------------------------------------------------------------------------
+# Completed reports (part 3: patient-lookup-portal).
+#
+# Stored compactly in data/epcr_reports.json and served as FHIR. Who was on the call and who
+# signed lives in Provenance -- one per report version -- because access to an outcome
+# follows that attestation, and an amendment is a new version, never an edit.
+# ---------------------------------------------------------------------------
+REPORTS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "epcr_reports.json")
+try:
+    with open(REPORTS_PATH) as _fh:
+        _REPORTS_DOC = json.load(_fh)
+except (FileNotFoundError, ValueError):
+    _REPORTS_DOC = {}
+_PRACTITIONERS = {p["license"].lower(): p for p in _REPORTS_DOC.get("practitioners", [])}
+_REPORTS = {f"pcr-{r['incident']}": r for r in _REPORTS_DOC.get("reports", [])}
+
+LICENSE_SYSTEM = "urn:mock:paramedic-license"
+INCIDENT_SYSTEM = "urn:mock:cad-incident"
+SIGNATURE_TYPE = {"system": "urn:iso-astm:E1762-95:2013", "code": "1.2.840.10065.1.12.1.1",
+                  "display": "Author's Signature"}
+
+
+def _fhir_bundle(resources, kind="searchset"):
+    return {"resourceType": "Bundle", "type": kind, "total": len(resources),
+            "entry": [{"resource": r} for r in resources]}
+
+
+def _practitioner(p):
+    return {"resourceType": "Practitioner", "id": p["license"].lower(),
+            "identifier": [{"system": LICENSE_SYSTEM, "value": p["license"]}],
+            "name": [{"text": p["name"]}]}
+
+
+def _recorded_patient(pt):
+    """The patient as the crew recorded them -- contained, because the ePCR's account of a
+    person is not the hospital's, and pretending they share an id is the mistake part 3 is
+    built to avoid."""
+    res = {"resourceType": "Patient", "id": "recorded"}
+    name = {k: v for k, v in (("family", pt.get("last_name")),
+                              ("given", [pt["first_name"]] if pt.get("first_name") else None)) if v}
+    if name:
+        res["name"] = [name]
+    if pt.get("dob"):
+        res["birthDate"] = pt["dob"]
+    if pt.get("sex"):
+        res["gender"] = pt["sex"]
+    if pt.get("mrn"):
+        res["identifier"] = [{"system": "urn:mrn", "value": pt["mrn"]}]
+    if pt.get("age") is not None:
+        res["extension"] = [{"url": "urn:mock:recorded-age",
+                             "valueAge": {"value": pt["age"], "unit": "a",
+                                          "system": "http://unitsofmeasure.org", "code": "a"}}]
+    return res
+
+
+def _composition(cid, report, version):
+    return {
+        "resourceType": "Composition", "id": cid, "meta": {"versionId": str(version["number"])},
+        "identifier": {"system": INCIDENT_SYSTEM, "value": report["incident"]},
+        "status": "final" if version["signed"] else "preliminary",
+        "type": {"text": "Patient care report"},
+        "date": version.get("signed_at") or report["handover_time"],
+        "title": f"Patient care report — {report['incident']}",
+        "contained": [
+            _recorded_patient(report["patient"]),
+            {"resourceType": "Encounter", "id": "ems", "status": "finished",
+             "class": {"system": "http://terminology.hl7.org/CodeSystem/v3-ActCode", "code": "FLD",
+                       "display": "field"},
+             "period": {"start": report["call_time"], "end": report["handover_time"]}},
+        ],
+        "subject": {"reference": "#recorded"},
+        "encounter": {"reference": "#ems"},
+        "author": [{"reference": f"Practitioner/{a['license'].lower()}"} for a in version["attendants"]],
+        "section": [{"title": "Field impression",
+                     "text": {"status": "generated",
+                              "div": f'<div xmlns="http://www.w3.org/1999/xhtml">'
+                                     f'{html.escape(report["field_impression"])}</div>'}}],
+    }
+
+
+def _provenance(cid, report, version):
+    n = version["number"]
+    prov = {
+        "resourceType": "Provenance", "id": f"prov-{report['incident']}-v{n}",
+        "target": [{"reference": f"Composition/{cid}/_history/{n}"}],
+        "recorded": version.get("signed_at") or report["handover_time"],
+        "agent": [{"type": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/provenance-participant-type",
+                                        "code": "author"}]},
+                   "role": [{"text": a["role"]}],
+                   "who": {"reference": f"Practitioner/{a['license'].lower()}"}}
+                  for a in version["attendants"]],
+    }
+    if version["signed"]:
+        # Primary and secondary sign. A student's name on the report is not a signature.
+        prov["signature"] = [{"type": [SIGNATURE_TYPE], "when": version["signed_at"],
+                              "who": {"reference": f"Practitioner/{a['license'].lower()}"}}
+                             for a in version["attendants"] if a["role"] in ("primary", "secondary")]
+    return prov
+
+
+def _latest(report):
+    return max(report["versions"], key=lambda v: v["number"])
+
+
+@app.get("/fhir/Practitioner/<prid>")
+def get_practitioner(prid):
+    p = _PRACTITIONERS.get(prid.lower())
+    if not p:
+        abort(404)
+    return jsonify(_practitioner(p))
+
+
+@app.get("/fhir/Composition")
+def search_compositions():
+    """Reports a practitioner appears on in ANY version -- including one they were later
+    amended off. Deciding what that grants is the portal's job, not the ePCR's."""
+    attester = (request.args.get("attester") or "").split("/")[-1].lower()
+    incident = request.args.get("identifier")
+    if not (attester or incident):
+        return jsonify(_fhir_bundle([]))
+    hits = [(cid, r) for cid, r in _REPORTS.items()
+            if (not incident or r["incident"] == incident)
+            and (not attester or any(a["license"].lower() == attester
+                                     for v in r["versions"] for a in v["attendants"]))]
+    return jsonify(_fhir_bundle([_composition(cid, r, _latest(r)) for cid, r in hits]))
+
+
+@app.get("/fhir/Composition/<cid>")
+def get_composition(cid):
+    r = _REPORTS.get(cid)
+    if not r:
+        abort(404)
+    return jsonify(_composition(cid, r, _latest(r)))
+
+
+@app.get("/fhir/Composition/<cid>/_history")
+def composition_history(cid):
+    r = _REPORTS.get(cid)
+    if not r:
+        abort(404)
+    versions = sorted(r["versions"], key=lambda v: v["number"], reverse=True)
+    return jsonify(_fhir_bundle([_composition(cid, r, v) for v in versions], kind="history"))
+
+
+@app.get("/fhir/Provenance")
+def search_provenance():
+    target = (request.args.get("target") or "").split("/")
+    cid = target[1] if len(target) >= 2 and target[0] == "Composition" else ""
+    r = _REPORTS.get(cid)
+    if not r:
+        return jsonify(_fhir_bundle([]))
+    return jsonify(_fhir_bundle([_provenance(cid, r, v) for v in r["versions"]]))
 
 
 if __name__ == "__main__":

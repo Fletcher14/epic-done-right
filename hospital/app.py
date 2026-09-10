@@ -13,6 +13,13 @@ Endpoints (FHIR-style):
     GET /fhir/MedicationRequest?patient=<id>     -> Bundle of meds
     GET /fhir/Patient?name=<family>              -> Bundle (patient lookup)
 
+Visit outcomes, added for patient-lookup-portal (part 3) -- see data/outcomes.json:
+    GET /fhir/Encounter/<id>                     -> Encounter
+    GET /fhir/Encounter?patient=<id>             -> Bundle of visits
+    GET /fhir/Condition?encounter=<id>           -> Bundle of visit diagnoses
+    GET /fhir/Procedure?encounter=<id>           -> Bundle of hospital procedures
+    GET /fhir/MedicationAdministration?encounter=<id> -> Bundle of medications given
+
 Run:  python hospital/app.py    (listens on :8001)
 """
 import datetime as dt
@@ -25,6 +32,21 @@ app = Flask(__name__)
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "patients.json")
 with open(DATA_PATH) as f:
     _RECORDS = {p["id"]: p for p in json.load(f)["patients"]}
+
+# Part 3 data lives in its own file, deliberately. continuity-layer and the pre-arrival
+# board both depend on the original roster above, so scenario patients are reachable by id
+# and by search but are NOT added to _RECORDS or the index's patient list.
+OUTCOMES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "outcomes.json")
+try:
+    with open(OUTCOMES_PATH) as f:
+        _OUTCOMES = json.load(f)
+except (FileNotFoundError, ValueError):
+    _OUTCOMES = {}
+_SCENARIO_PATIENTS = {p["id"]: p["Patient"] for p in _OUTCOMES.get("patients", [])}
+_ENCOUNTERS = {e["id"]: e for e in _OUTCOMES.get("Encounter", [])}
+_CONDITIONS = _OUTCOMES.get("Condition", [])
+_HOSPITAL_PROCEDURES = _OUTCOMES.get("Procedure", [])
+_MED_ADMINISTRATIONS = _OUTCOMES.get("MedicationAdministration", [])
 
 
 def _bundle(resources):
@@ -40,9 +62,11 @@ def _bundle(resources):
 @app.get("/fhir/Patient/<pid>")
 def get_patient(pid):
     rec = _RECORDS.get(pid)
-    if not rec:
-        abort(404)
-    return jsonify(rec["Patient"])
+    if rec:
+        return jsonify(rec["Patient"])
+    if pid in _SCENARIO_PATIENTS:
+        return jsonify(_SCENARIO_PATIENTS[pid])
+    abort(404)
 
 
 @app.get("/fhir/Patient")
@@ -53,8 +77,7 @@ def search_patient():
     if not (name or family or birthdate):
         return jsonify(_bundle([]))
     hits = []
-    for r in _RECORDS.values():
-        p = r["Patient"]
+    for p in [r["Patient"] for r in _RECORDS.values()] + list(_SCENARIO_PATIENTS.values()):
         fam = ((p.get("name") or [{}])[0].get("family") or "").lower()
         if name and name not in fam:
             continue
@@ -99,6 +122,7 @@ def index():
         "service": "mock-hospital (Epic side)",
         "fhir_version": "R4",
         "patients": list(_RECORDS.keys()),
+        "scenario_patients": list(_SCENARIO_PATIENTS.keys()),
     })
 
 
@@ -198,7 +222,58 @@ def get_observations():
 
 @app.get("/fhir/Procedure")
 def get_procedures():
+    eid = request.args.get("encounter")
+    if eid:
+        # Hospital-performed procedures for one visit (part 3). Without `encounter` this
+        # endpoint is exactly what it was: what crews submitted from the field.
+        return jsonify(_bundle([r for r in _HOSPITAL_PROCEDURES if _ref_id(r.get("encounter")) == eid]))
     return _submitted("Procedure")
+
+
+# ---------------------------------------------------------------------------
+# Visit outcomes (part 3: patient-lookup-portal).
+#
+# Read-only, and scoped like a real server: ask about a patient or a visit, or get nothing.
+# Each visit in data/outcomes.json exists to pose a problem the portal has to handle.
+# ---------------------------------------------------------------------------
+def _ref_id(ref):
+    return ((ref or {}).get("reference") or "").split("/")[-1]
+
+
+@app.get("/fhir/Encounter/<eid>")
+def get_encounter(eid):
+    enc = _ENCOUNTERS.get(eid)
+    if not enc:
+        abort(404)
+    return jsonify(enc)
+
+
+@app.get("/fhir/Encounter")
+def search_encounters():
+    pid = request.args.get("patient")
+    if not pid:
+        return jsonify(_bundle([]))
+    return jsonify(_bundle([e for e in _ENCOUNTERS.values() if _ref_id(e.get("subject")) == pid]))
+
+
+@app.get("/fhir/Condition")
+def search_conditions():
+    eid, pid = request.args.get("encounter"), request.args.get("patient")
+    if not (eid or pid):
+        return jsonify(_bundle([]))
+    return jsonify(_bundle([c for c in _CONDITIONS
+                            if (not eid or _ref_id(c.get("encounter")) == eid)
+                            and (not pid or _ref_id(c.get("subject")) == pid)]))
+
+
+@app.get("/fhir/MedicationAdministration")
+def search_medication_administrations():
+    eid, pid = request.args.get("encounter"), request.args.get("patient")
+    if not (eid or pid):
+        return jsonify(_bundle([]))
+    return jsonify(_bundle([m for m in _MED_ADMINISTRATIONS
+                            if (not eid or _ref_id(m.get("context")) == eid)
+                            and (not pid or _ref_id(m.get("subject")) == pid)]))
 
 
 CHART_PAGE = """
