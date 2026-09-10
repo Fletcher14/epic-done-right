@@ -215,3 +215,15 @@ def test_the_unidentified_patient_is_recorded_without_a_name():
 def test_field_impression_is_escaped():
     c = E.get("/fhir/Composition/pcr-2026-0905-0417").get_json()
     assert "<script" not in c["section"][0]["text"]["div"]
+
+
+def test_patient_search_by_identifier_supports_the_link_rules_second_path():
+    """Including a TEMPORARY MRN -- how an unidentified patient is found."""
+    assert [p["id"] for p in entries(H.get("/fhir/Patient?identifier=TEMP-7731"))] == ["pt-101"]
+    assert [p["id"] for p in entries(H.get("/fhir/Patient?identifier=urn:mrn|MRN-771903"))] == ["pt-002"]
+    assert entries(H.get("/fhir/Patient?identifier=MRN-000000")) == []
+
+
+def test_searches_without_an_identifier_are_unchanged():
+    assert entries(H.get("/fhir/Patient")) == []
+    assert sorted(p["id"] for p in entries(H.get("/fhir/Patient?family=dwyer"))) == ["pt-001", "pt-004"]

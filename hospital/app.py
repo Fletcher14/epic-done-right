@@ -12,6 +12,7 @@ Endpoints (FHIR-style):
     GET /fhir/Flag?patient=<id>                  -> Bundle of safety flags
     GET /fhir/MedicationRequest?patient=<id>     -> Bundle of meds
     GET /fhir/Patient?name=<family>              -> Bundle (patient lookup)
+    GET /fhir/Patient?identifier=[system|]<value> -> Bundle (lookup by MRN)
 
 Visit outcomes, added for patient-lookup-portal (part 3) -- see data/outcomes.json:
     GET /fhir/Encounter/<id>                     -> Encounter
@@ -74,7 +75,10 @@ def search_patient():
     name = request.args.get("name", "").lower()
     family = request.args.get("family", "").lower()
     birthdate = request.args.get("birthdate", "")
-    if not (name or family or birthdate):
+    # FHIR token search: "system|value" or a bare value. Added for part 3's link rule, whose
+    # second path starts from an MRN; searches without it behave exactly as before.
+    identifier = request.args.get("identifier", "").split("|")[-1]
+    if not (name or family or birthdate or identifier):
         return jsonify(_bundle([]))
     hits = []
     for p in [r["Patient"] for r in _RECORDS.values()] + list(_SCENARIO_PATIENTS.values()):
@@ -84,6 +88,8 @@ def search_patient():
         if family and family != fam:
             continue
         if birthdate and birthdate != p.get("birthDate", ""):
+            continue
+        if identifier and identifier not in {i.get("value") for i in p.get("identifier") or []}:
             continue
         hits.append(p)
     return jsonify(_bundle(hits))
