@@ -287,8 +287,8 @@ FHIR_BASE=https://hapi.fhir.org/baseR4 python bridge/bridge.py 137206160
 ```
 
 ## Scenario data for part 3
-The next project in this series gets the hospital outcome back to the paramedic who ran the
-call. It needs things this demo never modelled: hospital visits with diagnoses and treatments
+[The next project in this series](https://github.com/Fletcher14/patient-lookup-portal) gets the
+hospital outcome back to the paramedic who ran the call. It needs things this demo never modelled: hospital visits with diagnoses and treatments
 (`data/outcomes.json`), and completed reports carrying attendants, licenses, signatures and a
 field impression (`data/epcr_reports.json`). Both were added **without changing anything that
 already worked**:
@@ -409,6 +409,7 @@ resolves and every code comes from the real FHIR value sets.
 - ~~**SMART-on-FHIR** Backend Services auth.~~ **Done** — see *SMART on FHIR* above.
 - ~~A patient continuity layer — many sources in, one canonical record out.~~ **Done** —
   [continuity-layer](https://github.com/Fletcher14/continuity-layer).
-- **In progress:** the return path to the clinician — the hospital outcome back to the paramedic who
-  ran the call. Scenario data for it is already here (see *Scenario data for part 3*).
+- ~~The return path to the clinician.~~ **Done** —
+  [patient-lookup-portal](https://github.com/Fletcher14/patient-lookup-portal): the hospital outcome
+  back to the paramedic who ran the call. Its scenario data lives here (see *Scenario data for part 3*).
 ```
